@@ -57,6 +57,7 @@ dependencies {
     implementation 'org.springframework.ai:spring-ai-openai'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
+
     implementation 'io.github.cdimascio:java-dotenv:5.1.1'
 }
 

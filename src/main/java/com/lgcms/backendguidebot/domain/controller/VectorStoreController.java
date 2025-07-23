@@ -1,5 +1,6 @@
 package com.lgcms.backendguidebot.domain.controller;
 
+import com.lgcms.backendguidebot.domain.service.vectorDb.VectorStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -14,9 +15,11 @@ import java.util.List;
 @RequestMapping("api/pgv/v1")
 public class VectorStoreController {
     private final VectorStore vectorStore;
+    private final VectorStoreService vectorStoreService;
+
     @PostMapping("/")
     public ResponseEntity<List<Document>> accessTest(@RequestBody SearchRequest searchRequest) {
-
+        vectorStoreService.ingestDataFromJson();
         return ResponseEntity.ok(vectorStore.similaritySearch(
                 searchRequest
         ));
