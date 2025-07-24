@@ -72,8 +72,8 @@ public class VectorStoreService {
         List<Document> documents = tempDocuments
                 .stream()
                 .map(doc -> {
-                    String q = (String) doc.Q();
-                    String a = (String) doc.A();
+                    String q = (String) doc.question();
+                    String a = (String) doc.answer();
 
                     Map<String, Object> metadata = Map.of(
                             "originalQ", q,
