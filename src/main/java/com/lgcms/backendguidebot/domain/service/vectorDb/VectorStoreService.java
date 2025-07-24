@@ -3,8 +3,6 @@ package com.lgcms.backendguidebot.domain.service.vectorDb;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lgcms.backendguidebot.domain.entity.FaqDocumentEntity;
-import com.lgcms.backendguidebot.domain.repository.FaqDocumentRepository;
 import com.lgcms.backendguidebot.domain.service.embedding.record.rawDataRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -32,13 +30,12 @@ public class VectorStoreService {
     private final VectorStore vectorStore;
     private final ObjectMapper objectMapper;
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
-    private final FaqDocumentRepository faqDocumentRepository;
+    @Value("classpath:product_faq.json")
+    private Resource productFaq;
 
-
-    public VectorStoreService(VectorStore vectorStore, ObjectMapper objectMapper, FaqDocumentRepository faqDocumentRepository) {
+    public VectorStoreService(VectorStore vectorStore, ObjectMapper objectMapper) {
         this.vectorStore = vectorStore;
         this.objectMapper = objectMapper;
-        this.faqDocumentRepository = faqDocumentRepository;
     }
 
     /**
@@ -57,19 +54,26 @@ public class VectorStoreService {
 
 
     /**
-     * postgresql에 있는 question과 answer를 document로 변환한다.
+     * json파일을 읽어서 document로 변환한다.
      * 임베딩된 q가 데이터로 저장되고 원본q,a, created_at이 메타데이터로 저장된다.
      */
     public List<Document> readDataFromJson() {
-        // 1. db에서 불러오기
-        List<FaqDocumentEntity> allEntities = faqDocumentRepository.findAll();
+        // 1. objectmapper로 Q와 A를 구분하며 메타데이터에 넣는다. jsonReader를 안쓰는 이유는 메타데이터에 못넣음...
+        List<rawDataRecord> tempDocuments;
+        try (InputStream inputStream = productFaq.getInputStream()) {
+            tempDocuments = objectMapper.readValue(inputStream, new TypeReference<>() {
+            });
+        } catch (IOException e) {
+            log.error("벡터스토어서비스 objectmapper실패");
+            throw new RuntimeException(e);
+        }
 
         // 2. metadata 만들고 documents구성하기
-        List<Document> documents = allEntities
+        List<Document> documents = tempDocuments
                 .stream()
                 .map(doc -> {
-                    String q = (String) doc.getQuestion();
-                    String a = (String) doc.getAnswer();
+                    String q = (String) doc.Q();
+                    String a = (String) doc.A();
 
                     Map<String, Object> metadata = Map.of(
                             "originalQ", q,
