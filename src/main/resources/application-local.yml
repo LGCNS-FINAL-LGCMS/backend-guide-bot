@@ -11,7 +11,7 @@ spring:
     show-sql: false
     database: postgresql
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
@@ -19,6 +19,10 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_APIKEY}
+      chat:
+        options:
+          model: gpt-4o
+          temperature: 0.7
       embedding:
         options:
           model: text-embedding-3-small
