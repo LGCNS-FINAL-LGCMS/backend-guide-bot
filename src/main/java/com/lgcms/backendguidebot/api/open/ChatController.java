@@ -4,6 +4,8 @@ import com.lgcms.backendguidebot.common.dto.BaseResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.lgcms.backendguidebot.domain.service.ai.local.ChatService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -25,32 +27,17 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/open/guide/")
+@RequiredArgsConstructor
 public class ChatController {
-    private final ChatClient.Builder chatClientBuilder;
-    private final VectorStore vectorStore;
-
-
-    public ChatController(ChatClient.Builder chatClientBuilder, VectorStore vectorStore) {
-        this.chatClientBuilder = chatClientBuilder;
-        this.vectorStore = vectorStore;
-    }
+    private final ChatService chatService;
 
 
     @PostMapping("/ask")
     public ResponseEntity<BaseResponse<ChatResponse>> askQuestion(
             @RequestBody ChatRequest chatRequest
     ) {
-        ChatClient chatClient = chatClientBuilder.build();
-        List<Document> Documents = vectorStore.similaritySearch(chatRequest.query);
-        String context = Documents.stream()
-                .map(Document::getText)
-                .collect(Collectors.joining(" "));
-
-        Message systemMessage = new SystemMessage("당신은 친절한 도우미입니다. 이 컨텍스트를 참고해 답변하세요 context : " + context);
-        UserMessage userMessage = new UserMessage(chatRequest.query);
-
-        String answer = chatClient.prompt(new Prompt(List.of(systemMessage, userMessage)))
-                .call().content();
+        String answer = chatService.getResponse(chatRequest.query);
+        log.info("완료");
         return ResponseEntity.ok(BaseResponse.ok(new ChatResponse(answer)));
     }
 
