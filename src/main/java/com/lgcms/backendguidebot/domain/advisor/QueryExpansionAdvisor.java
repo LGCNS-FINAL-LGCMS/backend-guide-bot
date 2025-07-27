@@ -28,6 +28,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
         this.expansionChatOptions = OpenAiChatOptions.builder()
                 .model("gpt-4o-mini")
                 .temperature(0.4)
+                .maxCompletionTokens(500)
                 .build();
     }
 
@@ -39,11 +40,23 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         PromptTemplate expansionPrompt = new PromptTemplate(
                 """
-                        당신은 더 나은 retrieval을 위한 쿼리의 확장에 도움을 주는 ai도우미에요.
-                        사용자의 원본 쿼리를 분석하여, 해당 쿼리가 포함하는 모든 핵심 개념과 질문 의도를 포괄하는
-                        여러 개의 관련 키워드와 구문들을 생성해주세요.
-                        특히, 여러 질문이나 주제가 복합된 쿼리일 경우, 각 부분을 명확히 다루는 확장 쿼리를 만들어주세요.
+                        당신은 사용자의 원본 쿼리를 기반으로, 검색(retrieval)을 위한 최적의 확장 쿼리 키워드/구문을 생성하는 AI 도우미입니다.
+                        원본 쿼리의 핵심적인 질문 의도를 유지하면서, 관련성 높은 키워드와 구문을 만들어주세요.
+                        불필요하게 광범위한 주제나 원본 쿼리의 직접적인 의도를 벗어나는 내용은 포함하지 마세요.
+                        오직 원본 쿼리와 의미적으로 매우 유사하거나, 동일한 정보를 찾기 위해 사용될 수 있는 다양한 표현들을 생성해야 합니다.
                         결과는 쉼표로 구분된 키워드/구문 목록 형태로 제공해주세요.
+                        
+                        ---
+                        Original query: 강의 구매 어케함
+                        Expanded query keywords/phrases: 강의 구매 방법, 온라인 강의 구매, 강의 수강 신청 절차, 강의 결제 방법
+                        
+                        Original query: 환불 절차 알려줘
+                        Expanded query keywords/phrases: 환불 방법, 결제 취소 절차, 수강료 환불 안내, 구매 취소 방법, 환불 신청
+                        
+                        Original query: 강의 수료증 어디서 받나요?
+                        Expanded query keywords/phrases: 수료증 발급처, 강의 수료증 발급, 수료증 수령 방법, 수료증 신청 장소, 수료증 출력
+                        
+                        ---
                         Original query: {query}
                         Expanded query keywords/phrases:
                         """
