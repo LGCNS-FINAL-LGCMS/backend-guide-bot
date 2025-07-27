@@ -21,10 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -69,10 +67,39 @@ public class ReRankAdvisor implements CallAdvisor {
         }
         log.info("검색결과 : {}", retrievedDocuments);
 
-        // re-rank
-        ChatClient reRankClient = chatClientBuilder.build();
+        // 중복 제거
+        // 중복제거 로직 (map은 중복안되니까 맵에다가 다 넣어서 제거처리후 리스트로 )
+        List<Document> filteredDocuments = new ArrayList<>(retrievedDocuments.stream()
+                .collect(Collectors.toMap(doc -> {
+                            return doc.getMetadata().get("originalQ");
+                        },
+                        Function.identity(), // document 객체 그 자체가 value입니다.
+                        (existing, replacement) -> existing, // 중복 값은 버리기
+                        LinkedHashMap::new // 유사도 순서 기억을 위해 링크드해시맵 사용
+                ))
+                .values());
 
-        String documentsMetadata = retrievedDocuments.stream()
+
+        // re-rank <<- 이전엔 llm호출을 통해 rerank를 수행했지만 시간이 너무 오래걸려 내부로직으로 변경
+        // 유사도 점수 (metadata:score) 와 생성일자(metadata:createdAt)을 고려해서 정렬하게 처리
+        // 중복제거와 re-rank를 내부로직으로 변경하여 rerank시간이 40초에서 0초대로 줄어듦
+        // 비교기 1 ( 스코어 기반 )
+        Comparator<Document> scoreComparator = Comparator.comparing(
+                (Document doc) -> (Double) doc.getMetadata().getOrDefault("score", 0.0)
+        ).reversed();
+
+        // 비교기 2 ( 생성일자 기반 )
+        Comparator<Document> createdAtComparator = Comparator.comparing(
+                (Document doc) -> (String) doc.getMetadata().getOrDefault("createdAt", "0000-01-01T00:00:00")
+        ).reversed();
+        filteredDocuments.sort(scoreComparator.thenComparing(createdAtComparator));
+
+        // 5개만 사용(너무많으면 시간오래걸립니다.)
+        if (filteredDocuments.size() > 5) {
+            filteredDocuments = filteredDocuments.subList(0, 5);
+        }
+
+        String documentsMetadata = filteredDocuments.stream()
                 .map(doc -> {
                     StringBuilder docInfo = new StringBuilder();
                     docInfo.append("Document ID: ").append(doc.getId()).append("\n");
@@ -94,32 +121,8 @@ public class ReRankAdvisor implements CallAdvisor {
                 .collect(Collectors.joining("\n\n"));
 
 
-        PromptTemplate reRankPromptTemplate = new PromptTemplate(
-                """
-                        당신은 리랭크를 도와주는 도우미입니다. 사용자쿼리와 document리스트를 줄테니,
-                        쿼리 유사도를 기반으로 document를 re-rank하세요.
-                        각 document는 orginalQ(원본Q), originalA(원본A), createdAt(생성일자)를 metadata안에 가지고 있습니다.
-                        모든 정보를 고려해서, 특히 생성일자를 신경쓰면서 원본Q가 사용자쿼리와 얼마나 매치하는지를 중점으로
-                        re-ranked Documents를 제공하세요. '--Document--'로 구분지으세요.
-                        
-                        User Query : {query}
-                        
-                        Documents: {documents}
-                        
-                        Re-ranked Documents :
-                        """
-        );
-        Prompt reRankInPrompt = reRankPromptTemplate.create(
-                Map.of("query", userQuery, "documents", documentsMetadata)
-        );
-
-        String reRankedContent = reRankClient.prompt(reRankInPrompt)
-                .options(reRankChatOptions)
-                .call()
-                .content();
-
         List<Message> finalMessageList = new ArrayList<>();
-        finalMessageList.add(new SystemMessage(ragPromptTemplateResource + reRankedContent));
+        finalMessageList.add(new SystemMessage(ragPromptTemplateResource + documentsMetadata));
         finalMessageList.add(new UserMessage(userQuery));
 
         Prompt finalReRankPrompt = new Prompt(finalMessageList, chatClientRequest
@@ -129,7 +132,6 @@ public class ReRankAdvisor implements CallAdvisor {
                 .prompt(finalReRankPrompt)
                 .build();
 
-//        System.out.println("안녕"+reRankedContent);
         return callAdvisorChain.nextCall(finalChatClient);
     }
 
