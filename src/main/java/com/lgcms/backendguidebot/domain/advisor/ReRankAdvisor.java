@@ -102,7 +102,6 @@ public class ReRankAdvisor implements CallAdvisor {
         String documentsMetadata = filteredDocuments.stream()
                 .map(doc -> {
                     StringBuilder docInfo = new StringBuilder();
-                    docInfo.append("Document ID: ").append(doc.getId()).append("\n");
                     docInfo.append("Metadata: ").append(doc.getMetadata()).append("\n");
 
                     // 메타데이터 추출 및 추가

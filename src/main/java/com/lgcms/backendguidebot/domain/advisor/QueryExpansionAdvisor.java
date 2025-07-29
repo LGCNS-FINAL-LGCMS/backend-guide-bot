@@ -40,13 +40,14 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         PromptTemplate expansionPrompt = new PromptTemplate(
                 """
-                        당신은 사용자의 원본 쿼리를 기반으로, 검색(retrieval)을 위한 최적의 확장 쿼리 키워드/구문을 생성하는 AI 도우미입니다.
-                        원본 쿼리의 핵심적인 질문 의도를 유지하면서, 관련성 높은 키워드와 구문을 만들어주세요.
-                        불필요하게 광범위한 주제나 원본 쿼리의 직접적인 의도를 벗어나는 내용은 포함하지 마세요.
-                        오직 원본 쿼리와 의미적으로 매우 유사하거나, 동일한 정보를 찾기 위해 사용될 수 있는 다양한 표현들을 생성해야 합니다.
-                        결과는 쉼표로 구분된 키워드/구문 목록 형태로 제공해주세요.
+                        You are an AI assistant that generates optimal expanded query keywords/phrases for retrieval based on the user's original query.
+                        Please create highly relevant keywords and phrases while maintaining the core intent of the original query.
+                        Do not include overly broad topics or content that deviates from the direct intent of the original query.
+                        You must generate only semantically very similar or diverse expressions that can be used to find the same information as the original query.
+                        Provide the results as a comma-separated list of keywords/phrases.
                         
                         ---
+                        [examples]
                         Original query: 강의 구매 어케함
                         Expanded query keywords/phrases: 강의 구매 방법, 온라인 강의 구매, 강의 수강 신청 절차, 강의 결제 방법
                         
