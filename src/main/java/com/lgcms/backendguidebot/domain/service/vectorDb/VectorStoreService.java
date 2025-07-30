@@ -3,7 +3,9 @@ package com.lgcms.backendguidebot.domain.service.vectorDb;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lgcms.backendguidebot.domain.dto.FaqResponse;
 import com.lgcms.backendguidebot.domain.service.embedding.record.rawDataRecord;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 
@@ -18,6 +20,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +33,8 @@ public class VectorStoreService {
     private final VectorStore vectorStore;
     private final ObjectMapper objectMapper;
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
-    @Value("classpath:product_faq.json")
+
+    @Value("classpath:/product_faq.json")
     private Resource productFaq;
 
     public VectorStoreService(VectorStore vectorStore, ObjectMapper objectMapper) {
@@ -60,6 +64,7 @@ public class VectorStoreService {
     public List<Document> readDataFromJson() {
         // 1. objectmapper로 Q와 A를 구분하며 메타데이터에 넣는다. jsonReader를 안쓰는 이유는 메타데이터에 못넣음...
         List<rawDataRecord> tempDocuments;
+
         try (InputStream inputStream = productFaq.getInputStream()) {
             tempDocuments = objectMapper.readValue(inputStream, new TypeReference<>() {
             });
@@ -116,4 +121,8 @@ public class VectorStoreService {
 
         System.out.println("문서 내용: " + searchResults.getFirst().getFormattedContent());
     }
+
+
+
+
 }
