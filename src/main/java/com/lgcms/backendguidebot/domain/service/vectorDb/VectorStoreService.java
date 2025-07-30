@@ -123,6 +123,25 @@ public class VectorStoreService {
     }
 
 
+    // 실제 사용하는 openfeign으로 가져온 list<faqresponse>를 임베딩해 저장하는 함수
+    public void ingestDataFromList(List<FaqResponse> FaqList) {
+        long beforetime = System.currentTimeMillis();
 
+        List<Document> documents = new ArrayList<>();
+        FaqList
+                .forEach(faq -> {
+                    Map<String, Object> metadata = Map.of(
+                            "originalAnswer", faq.answer(),
+                            "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    );
 
+                    Document document = new Document(faq.question(), metadata);
+                    documents.add(document);
+                });
+        // 임베딩해 저장
+        vectorStore.add(documents);
+
+        long afteretime = System.currentTimeMillis();
+        log.info(String.valueOf((afteretime - beforetime) / 1000));
+    }
 }
