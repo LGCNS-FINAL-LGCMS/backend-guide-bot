@@ -28,6 +28,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
         this.expansionChatOptions = OpenAiChatOptions.builder()
                 .model("gpt-4o-mini")
                 .temperature(0.4)
+                .maxCompletionTokens(500)
                 .build();
     }
 
@@ -39,11 +40,24 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         PromptTemplate expansionPrompt = new PromptTemplate(
                 """
-                        당신은 더 나은 retrieval을 위한 쿼리의 확장에 도움을 주는 ai도우미에요.
-                        사용자의 원본 쿼리를 분석하여, 해당 쿼리가 포함하는 모든 핵심 개념과 질문 의도를 포괄하는
-                        여러 개의 관련 키워드와 구문들을 생성해주세요.
-                        특히, 여러 질문이나 주제가 복합된 쿼리일 경우, 각 부분을 명확히 다루는 확장 쿼리를 만들어주세요.
-                        결과는 쉼표로 구분된 키워드/구문 목록 형태로 제공해주세요.
+                        You are an AI assistant that generates optimal expanded query keywords/phrases for retrieval based on the user's original query.
+                        Please create highly relevant keywords and phrases while maintaining the core intent of the original query.
+                        Do not include overly broad topics or content that deviates from the direct intent of the original query.
+                        You must generate only semantically very similar or diverse expressions that can be used to find the same information as the original query.
+                        Provide the results as a comma-separated list of keywords/phrases.
+                        
+                        ---
+                        [examples]
+                        Original query: 강의 구매 어케함
+                        Expanded query keywords/phrases: 강의 구매 방법, 온라인 강의 구매, 강의 수강 신청 절차, 강의 결제 방법
+                        
+                        Original query: 환불 절차 알려줘
+                        Expanded query keywords/phrases: 환불 방법, 결제 취소 절차, 수강료 환불 안내, 구매 취소 방법, 환불 신청
+                        
+                        Original query: 강의 수료증 어디서 받나요?
+                        Expanded query keywords/phrases: 수료증 발급처, 강의 수료증 발급, 수료증 수령 방법, 수료증 신청 장소, 수료증 출력
+                        
+                        ---
                         Original query: {query}
                         Expanded query keywords/phrases:
                         """
