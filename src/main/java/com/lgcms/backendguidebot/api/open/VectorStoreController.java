@@ -25,10 +25,11 @@ public class VectorStoreController {
     // 코어에서faq데이터를 가져오고 그것을 임베딩해 저장한다.
     @GetMapping("/ingest")
     public ResponseEntity<BaseResponse<String>> ingest() {
-        List<FaqResponse> originalData = remoteFaqService.getFaq().data();
+//        List<FaqResponse> originalData = remoteFaqService.getFaq().data();
 
-        vectorStoreService.ingestDataFromList(originalData);
+//        vectorStoreService.ingestDataFromList(originalData);
 
+        vectorStoreService.ingestDataFromJson();
         return ResponseEntity.ok(BaseResponse.ok("코어로부터 데이터를 가져와 임베딩해 저장했습니다."));
     }
 }

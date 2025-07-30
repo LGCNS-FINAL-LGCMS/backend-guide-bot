@@ -71,7 +71,7 @@ public class ReRankAdvisor implements CallAdvisor {
         // 중복제거 로직 (map은 중복안되니까 맵에다가 다 넣어서 제거처리후 리스트로 )
         List<Document> filteredDocuments = new ArrayList<>(retrievedDocuments.stream()
                 .collect(Collectors.toMap(doc -> {
-                            return doc.getMetadata().get("originalQ");
+                            return doc.getMetadata().get("originalAnswer");
                         },
                         Function.identity(), // document 객체 그 자체가 value입니다.
                         (existing, replacement) -> existing, // 중복 값은 버리기
@@ -106,11 +106,8 @@ public class ReRankAdvisor implements CallAdvisor {
 
                     // 메타데이터 추출 및 추가
                     Map<String, Object> metadata = doc.getMetadata();
-                    if (metadata.containsKey("원본q")) {
-                        docInfo.append("원본q: ").append(metadata.get("원본q")).append("\n");
-                    }
-                    if (metadata.containsKey("원본a")) {
-                        docInfo.append("원본a: ").append(metadata.get("원본a")).append("\n");
+                    if (metadata.containsKey("원본 답변")) {
+                        docInfo.append("원본 답변: ").append(metadata.get("원본 답변")).append("\n");
                     }
                     if (metadata.containsKey("생성일자")) {
                         docInfo.append("생성일자: ").append(metadata.get("생성일자")).append("\n");

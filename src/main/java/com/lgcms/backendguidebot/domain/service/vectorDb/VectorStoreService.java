@@ -77,16 +77,15 @@ public class VectorStoreService {
         List<Document> documents = tempDocuments
                 .stream()
                 .map(doc -> {
-                    String q = (String) doc.question();
-                    String a = (String) doc.answer();
+                    String question = (String) doc.Q();
+                    String answer = (String) doc.A();
 
                     Map<String, Object> metadata = Map.of(
-                            "originalQ", q,
-                            "originalA", a,
+                            "originalAnswer", answer,
                             "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                     );
 
-                    return new Document(q, metadata);
+                    return new Document(question, metadata);
                 }).toList();
         return documents;
     }
