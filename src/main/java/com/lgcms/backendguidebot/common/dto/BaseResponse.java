@@ -1,5 +1,6 @@
 package com.lgcms.backendguidebot.common.dto;
 
+
 public record BaseResponse<T>(
         String status,
         String message,

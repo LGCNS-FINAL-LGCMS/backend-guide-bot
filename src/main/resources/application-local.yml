@@ -19,9 +19,16 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_APIKEY}
+      chat:
+        options:
+          model: gpt-4o
+          temperature: 0.3
+          max-completion-tokens: 1000
+          top-p: 0.7
       embedding:
         options:
           model: text-embedding-3-small
+
 
     vectorstore:
       pgvector:
