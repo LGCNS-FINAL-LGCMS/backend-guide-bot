@@ -1,40 +1,50 @@
-server:
-  port: 8080
+  server:
+    port: 38105
 
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/pgv
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    show-sql: false
-    database: postgresql
-    hibernate:
-      ddl-auto: update
-    properties:
+  spring:
+    datasource:
+      url: jdbc:postgresql://localhost:38121/lgmcs
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+    jpa:
+      show-sql: false
+      database: postgresql
       hibernate:
-        format_sql: true
+        ddl-auto: create
+      properties:
+        hibernate:
+          format_sql: true
 
-  ai:
-    openai:
-      api-key: ${OPENAI_APIKEY}
-      chat:
-        options:
-          model: gpt-4o
-          temperature: 0.3
-          max-completion-tokens: 1000
-          top-p: 0.7
-      embedding:
-        options:
-          model: text-embedding-3-small
+    ai:
+      model:
+        embedding: bedrock-titan
+  #      embedding: openai
+        chat: bedrock-converse
+      openai:
+        api-key: ${OPENAI_APIKEY}
+        embedding:
+          enabled: true
+          options:
+            model: text-embedding-3-small
 
+      bedrock:
+        aws:
+          region: ap-northeast-2 # 서울리전
+          access-key: ${AWS_ACCESS_KEY_ID}
+          secret-key: ${AWS_SECRET_ACCESS_KEY}
+        titan:
+          embedding:
+            model: amazon.titan-embed-text-v2:0
+            input-type: text
 
-    vectorstore:
-      pgvector:
-        index-type: HNSW
-        distance-type: COSINE_DISTANCE
-        dimensions: 1536
-        initialize-schema: true
-        schema-validation: true
-        table-name: guide_bot_embedded_q
+      vectorstore:
+        pgvector:
+          index-type: HNSW
+          distance-type: COSINE_DISTANCE
+  #        dimensions: 1536 # openai용
+          initialize-schema: true
+          schema-validation: true
+          table-name: guide
+  #        table-name: guide_bot_openai_q
+          dimensions: 1024 # 타이탄 임베딩용

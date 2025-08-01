@@ -52,20 +52,18 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
 
 
-    //    스프링 ai
-    implementation platform("org.springframework.ai:spring-ai-bom:1.0.0")
-    implementation 'org.springframework.ai:spring-ai-openai:1.0.0'
-    implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
+    // aws 사용 시 - chatmodel
+    implementation 'org.springframework.ai:spring-ai-starter-model-bedrock-converse'
+    // 임베딩모델
+    implementation 'org.springframework.ai:spring-ai-starter-model-bedrock'
 
-//    //    aws 사용 시
-//    implementation 'org.springframework.ai:spring-ai-aws-bedrock-chat'
-//    implementation 'org.springframework.ai:spring-ai-aws-bedrock-embedding'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
 
 }
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0"
+        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0"   // spring ai 관리
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
     }
 }

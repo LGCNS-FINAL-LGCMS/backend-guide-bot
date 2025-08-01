@@ -16,19 +16,26 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/open/vector/")
+@RequestMapping("/api/internal/guide")
 @RequiredArgsConstructor
 public class VectorStoreController {
     private final RemoteFaqService remoteFaqService;
     private final VectorStoreService vectorStoreService;
 
     // 코어에서faq데이터를 가져오고 그것을 임베딩해 저장한다.
-    @GetMapping("/ingest")
+    @GetMapping("/vector/ingest")
     public ResponseEntity<BaseResponse<String>> ingest() {
         List<FaqResponse> originalData = remoteFaqService.getFaq().data();
 
         vectorStoreService.ingestDataFromList(originalData);
-        
+
         return ResponseEntity.ok(BaseResponse.ok("코어로부터 데이터를 가져와 임베딩해 저장했습니다."));
+    }
+
+    // 이건 git에 올리지말기
+    @GetMapping("/vector/test")
+    public ResponseEntity<BaseResponse<String>> test() {
+        vectorStoreService.ingestDataFromJson();
+        return ResponseEntity.ok(BaseResponse.ok("휴"));
     }
 }

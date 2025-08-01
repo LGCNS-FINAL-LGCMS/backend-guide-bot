@@ -8,9 +8,10 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.openai.OpenAiChatOptions;
+//import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,22 +22,30 @@ import java.util.Map;
 @Slf4j
 public class QueryExpansionAdvisor implements CallAdvisor {
     private final ChatClient.Builder chatClientBuilder;
-    private final OpenAiChatOptions expansionChatOptions;
 
     public QueryExpansionAdvisor(ChatClient.Builder chatClientBuilder) {
+
+//        this.expansionChatOptions = OpenAiChatOptions.builder()
+//                .model("gpt-4o-mini")
+//                .temperature(0.4)
+//                .maxCompletionTokens(500)
+//                .build();
+
         this.chatClientBuilder = chatClientBuilder;
-        this.expansionChatOptions = OpenAiChatOptions.builder()
-                .model("gpt-4o-mini")
-                .temperature(0.4)
-                .maxCompletionTokens(500)
-                .build();
+
     }
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
         // 이 곳이 내부 로직
+        ChatOptions chatOptions = ChatOptions.builder()
+                .model("anthropic.claude-3-haiku-20240307-v1:0")
+                .build();
+
         String userQuery = chatClientRequest.prompt().getContents();
-        ChatClient expansionClient = chatClientBuilder.build();
+        ChatClient expansionClient = chatClientBuilder
+                .defaultOptions(chatOptions)
+                .build();
 
         PromptTemplate expansionPrompt = new PromptTemplate(
                 """
@@ -66,7 +75,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
         log.info("원본쿼리 : {}", userQuery);
         Prompt queryInPrompt = expansionPrompt.create(Map.of("query", userQuery));
         String expandedQuery = expansionClient.prompt(queryInPrompt)
-                .options(expansionChatOptions)
+//                .options(expansionChatOptions)
                 .call()
                 .content();
         log.info("확장쿼리 : {}", expandedQuery);

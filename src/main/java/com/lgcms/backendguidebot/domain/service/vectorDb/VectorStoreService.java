@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -63,54 +64,45 @@ public class VectorStoreService {
      */
     public List<Document> readDataFromJson() {
         // 1. objectmapper로 Q와 A를 구분하며 메타데이터에 넣는다. jsonReader를 안쓰는 이유는 메타데이터에 못넣음...
-        List<rawDataRecord> tempDocuments;
+        List<Document> documents = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        File productFaq = new File("src/main/resources/product_faq.json");
+        try{
+            List<Map<String, String>> qaData = objectMapper.readValue(productFaq,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+            for (Map<String, String> entry : qaData) {
+                String question = entry.get("Q");
+                String answer = entry.get("A");
 
-        try (InputStream inputStream = productFaq.getInputStream()) {
-            tempDocuments = objectMapper.readValue(inputStream, new TypeReference<>() {
-            });
+                // Document의 content에 질문을 저장합니다.
+                Document document = new Document(question);
+
+                // metadata 맵을 생성하여 원하는 정보를 추가합니다.
+                Map<String, Object> metadata = document.getMetadata();
+                metadata.put("originalAnswer", answer);
+                metadata.put("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+                documents.add(document);
+            }
+
         } catch (IOException e) {
-            log.error("벡터스토어서비스 objectmapper실패");
-            throw new RuntimeException(e);
+            // 파일 읽기 오류 처리
+            e.printStackTrace();
         }
 
-        // 2. metadata 만들고 documents구성하기
-        List<Document> documents = tempDocuments
-                .stream()
-                .map(doc -> {
-                    String question = (String) doc.Q();
-                    String answer = (String) doc.A();
-
-                    Map<String, Object> metadata = Map.of(
-                            "originalAnswer", answer,
-                            "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    );
-
-                    return new Document(question, metadata);
-                }).toList();
         return documents;
     }
 
     // completablefutre로 배치단위로 하게 하니까 7초걸리던게 6초 혹은 5초나온다.
+    // 근데 aws bedrock은 배치지원을 안해서 그냥 순차적으로한다.
     public void ingestDataFromJson() {
         long beforetime = System.currentTimeMillis();
         List<Document> documents = readDataFromJson();
 
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-        // 배치사이즈단위로 실행해서 집어넣는다
-        int BATCH_SIZE = 70;
-        for (int i = 0; i < documents.size(); i += BATCH_SIZE) {
-            final List<Document> batch = documents.subList(i, Math.min(documents.size(), i + BATCH_SIZE));
-
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                vectorStore.add(batch);
-            }, executorService);
-
-            futures.add(future);
+        // 문서를 하나씩 순차적으로 처리
+        for (Document doc : documents) {
+            vectorStore.add(List.of(doc));
         }
-
-        // 위 runasync마무리까지 대기
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         long afteretime = System.currentTimeMillis();
         log.info(String.valueOf((afteretime - beforetime) / 1000));
