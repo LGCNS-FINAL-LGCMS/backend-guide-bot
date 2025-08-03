@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "RemoteFaqService", url="http://localhost:8080", path = "/faq")
+@FeignClient(name = "RemoteFaqService", url="http://localhost:38105", path = "/faq")
 public interface RemoteFaqService {
     @GetMapping(value="")
     BaseResponse<List<FaqResponse>> getFaq();

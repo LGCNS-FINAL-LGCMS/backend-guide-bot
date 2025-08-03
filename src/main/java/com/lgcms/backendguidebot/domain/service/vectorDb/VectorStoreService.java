@@ -121,12 +121,18 @@ public class VectorStoreService {
         List<Document> documents = new ArrayList<>();
         FaqList
                 .forEach(faq -> {
-                    Map<String, Object> metadata = Map.of(
-                            "originalAnswer", faq.answer(),
+                    Map<String, Object> metadata = new HashMap<>(Map.of(
+                            "originalAnswer", faq.A(),
                             "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    );
+                    ));
+                    if (faq.url() != null) {
+                        metadata.put("url", faq.url());
+                    }
+                    if (faq.image_url() != null) {
+                        metadata.put("image_url", faq.image_url());
+                    }
 
-                    Document document = new Document(faq.question(), metadata);
+                    Document document = new Document(faq.Q(), metadata);
                     documents.add(document);
                 });
         // 임베딩해 저장

@@ -54,17 +54,19 @@ public class QueryExpansionAdvisor implements CallAdvisor {
                         Do not include overly broad topics or content that deviates from the direct intent of the original query.
                         You must generate only semantically very similar or diverse expressions that can be used to find the same information as the original query.
                         Provide the results as a comma-separated list of keywords/phrases.
+                        Extensions that deviate from the intent of the question are prohibited.
+                        확장 단어는 최대 6개 입니다.
                         
                         ---
                         [examples]
                         Original query: 강의 구매 어케함
-                        Expanded query keywords/phrases: 강의 구매 방법, 온라인 강의 구매, 강의 수강 신청 절차, 강의 결제 방법
+                        Expanded query keywords/phrases: 강의 구매 방법, 강의 결제 방법
                         
                         Original query: 환불 절차 알려줘
-                        Expanded query keywords/phrases: 환불 방법, 결제 취소 절차, 수강료 환불 안내, 구매 취소 방법, 환불 신청
+                        Expanded query keywords/phrases: 환불 방법, 결제 취소 절차, 수강료 환불 안내, 환불 신청
                         
                         Original query: 강의 수료증 어디서 받나요?
-                        Expanded query keywords/phrases: 수료증 발급처, 강의 수료증 발급, 수료증 수령 방법, 수료증 신청 장소, 수료증 출력
+                        Expanded query keywords/phrases: 수료증 발급처, 강의 수료증 발급, 수료증 수령 방법
                         
                         ---
                         Original query: {query}

@@ -1,5 +1,6 @@
 package com.lgcms.backendguidebot.domain.advisor;
 
+
 import com.lgcms.backendguidebot.common.dto.exception.BaseException;
 import com.lgcms.backendguidebot.common.dto.exception.QnaError;
 import lombok.AllArgsConstructor;
@@ -96,14 +97,16 @@ public class ReRankAdvisor implements CallAdvisor {
         ).reversed();
         filteredDocuments.sort(scoreComparator.thenComparing(createdAtComparator));
         log.info("필터된 도큐먼트 : {}", filteredDocuments);
-
+        // 최대 7개의 도큐먼트로 수정
+        if(filteredDocuments.size() >7){
+            filteredDocuments = filteredDocuments.subList(0, 7);
+        }
 
 
         String documentsMetadata = filteredDocuments.stream()
                 .map(doc -> {
                     StringBuilder docInfo = new StringBuilder();
-                    docInfo.append("Metadata: ").append(doc.getMetadata()).append("\n");
-
+                    docInfo.append("{\n");
                     // 메타데이터 추출 및 추가
                     Map<String, Object> metadata = doc.getMetadata();
                     if (metadata.containsKey("originalAnswer")) {
@@ -112,13 +115,21 @@ public class ReRankAdvisor implements CallAdvisor {
                     if (metadata.containsKey("createdAt")) {
                         docInfo.append("createdAt: ").append(metadata.get("createdAt")).append("\n");
                     }
-                    if (metadata.containsKey("score")) {
-                        docInfo.append("score: ").append(metadata.get("score")).append("\n");
+                    if (metadata.containsKey("distance")) {
+                        docInfo.append("distance: ").append(metadata.get("distance")).append("\n");
                     }
+                    docInfo.append("score: ").append(doc.getScore()).append("\n").append("}");
                     return docInfo.toString();
                 })
                 .collect(Collectors.joining("\n\n"));
-        log.info("string된 메타데이터 {}", documentsMetadata);
+        log.info("string된 메타데이터 \n{}", documentsMetadata);
+
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
 
         List<Message> finalMessageList = new ArrayList<>();
@@ -128,7 +139,7 @@ public class ReRankAdvisor implements CallAdvisor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        log.info("system template : {}", ragPromptTemplate);
+
         finalMessageList.add(new SystemMessage(ragPromptTemplate + documentsMetadata));
         finalMessageList.add(new UserMessage(userQuery));
 
