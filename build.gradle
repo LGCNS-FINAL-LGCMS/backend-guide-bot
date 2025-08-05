@@ -47,6 +47,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
+    // pgvector 자동생성
+    implementation 'org.springframework.ai:spring-ai-pgvector-store'
 
     testImplementation 'org.testcontainers:postgresql:1.21.0'
     testImplementation 'org.testcontainers:junit-jupiter:1.20.1'

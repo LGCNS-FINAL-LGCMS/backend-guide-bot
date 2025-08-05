@@ -3,7 +3,7 @@
 
   spring:
     datasource:
-      url: jdbc:postgresql://localhost:38121/lgmcs
+      url: jdbc:postgresql://localhost:38121/guide
       username: ${DB_USERNAME}
       password: ${DB_PASSWORD}
       driver-class-name: org.postgresql.Driver
@@ -45,6 +45,5 @@
   #        dimensions: 1536 # openai용
           initialize-schema: true
           schema-validation: true
-          table-name: guide
-  #        table-name: guide_bot_openai_q
+          table-name: guide_bot_embedded_q
           dimensions: 1024 # 타이탄 임베딩용
