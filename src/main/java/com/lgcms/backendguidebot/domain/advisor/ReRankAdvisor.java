@@ -118,7 +118,12 @@ public class ReRankAdvisor implements CallAdvisor {
                     if (metadata.containsKey("distance")) {
                         docInfo.append("distance: ").append(metadata.get("distance")).append("\n");
                     }
-                    docInfo.append("score: ").append(doc.getScore()).append("\n").append("}");
+                    docInfo.append("score: ").append(doc.getScore()).append("\n");
+                    if (metadata.containsKey("url")){
+                        docInfo.append("url: ").append(metadata.get("url")).append("\n");
+                    }
+
+                    docInfo.append("}");
                     return docInfo.toString();
                 })
                 .collect(Collectors.joining("\n\n"));

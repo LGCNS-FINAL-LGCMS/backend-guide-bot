@@ -55,7 +55,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
                         You must generate only semantically very similar or diverse expressions that can be used to find the same information as the original query.
                         Provide the results as a comma-separated list of keywords/phrases.
                         Extensions that deviate from the intent of the question are prohibited.
-                        확장 단어는 최대 6개 입니다.
+                        확장 단어는 최대 4개 입니다. 한글자 이하는 확장하지 않고 "잘모르겠습니다." 만 답변합니다.
                         
                         ---
                         [examples]
