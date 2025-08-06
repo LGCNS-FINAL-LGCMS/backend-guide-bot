@@ -2,6 +2,13 @@
     port: 38105
 
   spring:
+    cloud:
+      openfeign:
+        client:
+          config:
+            RemoteFaqService:
+              url:
+                http://localhost:38104
     datasource:
       url: jdbc:postgresql://localhost:38121/guide
       username: ${DB_USERNAME}
