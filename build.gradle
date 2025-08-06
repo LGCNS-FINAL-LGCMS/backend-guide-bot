@@ -59,8 +59,6 @@ dependencies {
     // 임베딩모델
     implementation 'org.springframework.ai:spring-ai-starter-model-bedrock'
 
-    implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.0'
-
 }
 
 dependencyManagement {

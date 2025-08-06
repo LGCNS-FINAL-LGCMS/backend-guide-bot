@@ -19,20 +19,11 @@
     ai:
       model:
         embedding: bedrock-titan
-  #      embedding: openai
         chat: bedrock-converse
-      openai:
-        api-key: ${OPENAI_APIKEY}
-        embedding:
-          enabled: true
-          options:
-            model: text-embedding-3-small
 
       bedrock:
         aws:
           region: ap-northeast-2 # 서울리전
-          access-key: ${AWS_ACCESS_KEY_ID}
-          secret-key: ${AWS_SECRET_ACCESS_KEY}
         titan:
           embedding:
             model: amazon.titan-embed-text-v2:0
