@@ -3,8 +3,8 @@ package com.lgcms.backendguidebot.domain.service.vectorDb;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lgcms.backendguidebot.domain.dto.FaqResponse;
-import com.lgcms.backendguidebot.domain.service.embedding.record.rawDataRecord;
+import com.lgcms.backendguidebot.remote.core.dto.FaqResponse;
+
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -24,23 +24,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 
 @Slf4j
 @Service
 public class VectorStoreService {
     private final VectorStore vectorStore;
-    private final ObjectMapper objectMapper;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
     @Value("classpath:/product_faq.json")
     private Resource productFaq;
 
-    public VectorStoreService(VectorStore vectorStore, ObjectMapper objectMapper) {
+    public VectorStoreService(VectorStore vectorStore) {
         this.vectorStore = vectorStore;
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -66,79 +61,78 @@ public class VectorStoreService {
         // 1. objectmapper로 Q와 A를 구분하며 메타데이터에 넣는다. jsonReader를 안쓰는 이유는 메타데이터에 못넣음...
         List<Document> documents = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        File productFaq = new File("src/main/resources/product_faq.json");
-        try{
-            List<Map<String, String>> qaData = objectMapper.readValue(productFaq,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
-            for (Map<String, String> entry : qaData) {
-                String question = entry.get("Q");
-                String answer = entry.get("A");
-
-                // Document의 content에 질문을 저장합니다.
-                Document document = new Document(question);
-
-                // metadata 맵을 생성하여 원하는 정보를 추가합니다.
-                Map<String, Object> metadata = document.getMetadata();
-                metadata.put("originalAnswer", answer);
-                metadata.put("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-
-                documents.add(document);
-            }
-
-        } catch (IOException e) {
-            // 파일 읽기 오류 처리
+        List<Map<String, String>> qaData = List.of();
+        try (InputStream inputStream = productFaq.getInputStream()) {
+            qaData = objectMapper.readValue(inputStream,
+                    new TypeReference<>() {
+                    });
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
+        for (Map<String, String> entry : qaData) {
+            String question = entry.get("Q");
+            String answer = entry.get("A");
+
+            // Document의 content에 질문을 저장합니다.
+            Document document = new Document(question);
+
+            // metadata 맵을 생성하여 원하는 정보를 추가합니다.
+            Map<String, Object> metadata = document.getMetadata();
+            metadata.put("originalAnswer", answer);
+            metadata.put("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+            documents.add(document);
+        }
         return documents;
     }
 
-    // completablefutre로 배치단위로 하게 하니까 7초걸리던게 6초 혹은 5초나온다.
-    // 근데 aws bedrock은 배치지원을 안해서 그냥 순차적으로한다.
-    public void ingestDataFromJson() {
-        long beforetime = System.currentTimeMillis();
-        List<Document> documents = readDataFromJson();
+        // completablefutre로 배치단위로 하게 하니까 7초걸리던게 6초 혹은 5초나온다.
+        // 근데 aws bedrock은 배치지원을 안해서 그냥 순차적으로한다.
+        public void ingestDataFromJson () {
+            long beforetime = System.currentTimeMillis();
+            List<Document> documents = readDataFromJson();
 
-        // 문서를 하나씩 순차적으로 처리
-        for (Document doc : documents) {
-            vectorStore.add(List.of(doc));
+            // 문서를 하나씩 순차적으로 처리
+            for (Document doc : documents) {
+                vectorStore.add(List.of(doc));
+            }
+
+            long afteretime = System.currentTimeMillis();
+            log.info(String.valueOf((afteretime - beforetime) / 1000));
+
+            System.out.println("\n 문서 검색 테스트 --------------------");
+            List<Document> searchResults = search(SearchRequest.builder().query("강의를 무료로 볼 수 있나요?").build());
+
+            System.out.println("문서 내용: " + searchResults.getFirst().getFormattedContent());
         }
 
-        long afteretime = System.currentTimeMillis();
-        log.info(String.valueOf((afteretime - beforetime) / 1000));
 
-        System.out.println("\n 문서 검색 테스트 --------------------");
-        List<Document> searchResults = search(SearchRequest.builder().query("강의를 무료로 볼 수 있나요?").build());
+        // 실제 사용하는 openfeign으로 가져온 list<faqresponse>를 임베딩해 저장하는 함수
+        public void ingestDataFromList (List < FaqResponse > FaqList) {
+            long beforetime = System.currentTimeMillis();
 
-        System.out.println("문서 내용: " + searchResults.getFirst().getFormattedContent());
+            List<Document> documents = new ArrayList<>();
+            FaqList
+                    .forEach(faq -> {
+                        Map<String, Object> metadata = new HashMap<>(Map.of(
+                                "originalAnswer", faq.A(),
+                                "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        ));
+                        if (faq.url() != null) {
+                            metadata.put("url", faq.url());
+                        }
+                        if (faq.image_url() != null) {
+                            metadata.put("image_url", faq.image_url());
+                        }
+
+                        Document document = new Document(faq.Q(), metadata);
+                        documents.add(document);
+                    });
+            // 임베딩해 저장
+            vectorStore.add(documents);
+
+            long afteretime = System.currentTimeMillis();
+            log.info(String.valueOf((afteretime - beforetime) / 1000));
+        }
     }
-
-
-    // 실제 사용하는 openfeign으로 가져온 list<faqresponse>를 임베딩해 저장하는 함수
-    public void ingestDataFromList(List<FaqResponse> FaqList) {
-        long beforetime = System.currentTimeMillis();
-
-        List<Document> documents = new ArrayList<>();
-        FaqList
-                .forEach(faq -> {
-                    Map<String, Object> metadata = new HashMap<>(Map.of(
-                            "originalAnswer", faq.A(),
-                            "createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    ));
-                    if (faq.url() != null) {
-                        metadata.put("url", faq.url());
-                    }
-                    if (faq.image_url() != null) {
-                        metadata.put("image_url", faq.image_url());
-                    }
-
-                    Document document = new Document(faq.Q(), metadata);
-                    documents.add(document);
-                });
-        // 임베딩해 저장
-        vectorStore.add(documents);
-
-        long afteretime = System.currentTimeMillis();
-        log.info(String.valueOf((afteretime - beforetime) / 1000));
-    }
-}
