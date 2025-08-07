@@ -9,7 +9,7 @@ import java.util.List;
 
 @FeignClient(
         name = "RemoteFaqService",
-        path = "/api/internal/faq"
+        path = "/api/internal/core/faq"
 )
 public interface RemoteFaqService {
     @GetMapping(value="")

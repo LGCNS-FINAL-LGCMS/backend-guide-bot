@@ -15,14 +15,14 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/guide")
+@RequestMapping("/api/admin/guide")
 @RequiredArgsConstructor
 public class VectorStoreController {
     private final RemoteFaqService remoteFaqService;
     private final VectorStoreService vectorStoreService;
 
     // 코어에서faq데이터를 가져오고 그것을 임베딩해 저장한다.
-    @GetMapping("/vector/ingest")
+    @GetMapping("/ingest")
     public ResponseEntity<BaseResponse<String>> ingest() {
         List<FaqResponse> originalData = remoteFaqService.getFaq().data();
 
