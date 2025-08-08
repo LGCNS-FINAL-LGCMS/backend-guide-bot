@@ -1,0 +1,45 @@
+server:
+  port: 38105
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          RemoteFaqService:
+            url: http://localhost:38104
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: lgcms
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    database: postgresql
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    model:
+      embedding: bedrock-titan
+      chat: bedrock-converse
+
+    bedrock:
+      aws:
+        region: ap-northeast-2 # 서울리전
+      titan:
+        embedding:
+          model: amazon.titan-embed-text-v2:0
+          input-type: text
+
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        initialize-schema: true
+        schema-validation: true
+        table-name: test_guide_bot_embedded_q
+        dimensions: 1024 # 타이탄 임베딩용

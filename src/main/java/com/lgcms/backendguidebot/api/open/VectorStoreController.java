@@ -1,7 +1,7 @@
 package com.lgcms.backendguidebot.api.open;
 
 import com.lgcms.backendguidebot.common.dto.BaseResponse;
-import com.lgcms.backendguidebot.domain.dto.FaqResponse;
+import com.lgcms.backendguidebot.remote.core.dto.FaqResponse;
 import com.lgcms.backendguidebot.domain.service.vectorDb.VectorStoreService;
 import com.lgcms.backendguidebot.remote.core.RemoteFaqService;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/open/vector/")
+@RequestMapping("/api/admin/guide")
 @RequiredArgsConstructor
 public class VectorStoreController {
     private final RemoteFaqService remoteFaqService;
@@ -28,7 +27,7 @@ public class VectorStoreController {
         List<FaqResponse> originalData = remoteFaqService.getFaq().data();
 
         vectorStoreService.ingestDataFromList(originalData);
-        
+
         return ResponseEntity.ok(BaseResponse.ok("코어로부터 데이터를 가져와 임베딩해 저장했습니다."));
     }
 }
