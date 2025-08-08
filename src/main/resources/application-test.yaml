@@ -40,6 +40,5 @@ spring:
         index-type: HNSW
         distance-type: COSINE_DISTANCE
         initialize-schema: true
-        schema-validation: true
         table-name: test_guide_bot_embedded_q
         dimensions: 1024 # 타이탄 임베딩용
