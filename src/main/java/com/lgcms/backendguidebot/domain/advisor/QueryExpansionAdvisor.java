@@ -11,7 +11,6 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
-//import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,15 +23,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
     private final ChatClient.Builder chatClientBuilder;
 
     public QueryExpansionAdvisor(ChatClient.Builder chatClientBuilder) {
-
-//        this.expansionChatOptions = OpenAiChatOptions.builder()
-//                .model("gpt-4o-mini")
-//                .temperature(0.4)
-//                .maxCompletionTokens(500)
-//                .build();
-
         this.chatClientBuilder = chatClientBuilder;
-
     }
 
     @Override
@@ -57,18 +48,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
                         Extensions that deviate from the intent of the question are prohibited.
                         확장 단어는 최대 4개 입니다. 한글자 이하는 확장하지 않고 "잘모르겠습니다." 만 답변합니다.
                         
-                        ---
-                        [examples]
-                        Original query: 강의 구매 어케함
-                        Expanded query keywords/phrases: 강의 구매 방법, 강의 결제 방법
-                        
-                        Original query: 환불 절차 알려줘
-                        Expanded query keywords/phrases: 환불 방법, 결제 취소 절차, 수강료 환불 안내, 환불 신청
-                        
-                        Original query: 강의 수료증 어디서 받나요?
-                        Expanded query keywords/phrases: 수료증 발급처, 강의 수료증 발급, 수료증 수령 방법
-                        
-                        ---
+                  
                         Original query: {query}
                         Expanded query keywords/phrases:
                         """
@@ -77,7 +57,6 @@ public class QueryExpansionAdvisor implements CallAdvisor {
         log.info("원본쿼리 : {}", userQuery);
         Prompt queryInPrompt = expansionPrompt.create(Map.of("query", userQuery));
         String expandedQuery = expansionClient.prompt(queryInPrompt)
-//                .options(expansionChatOptions)
                 .call()
                 .content();
         log.info("확장쿼리 : {}", expandedQuery);
