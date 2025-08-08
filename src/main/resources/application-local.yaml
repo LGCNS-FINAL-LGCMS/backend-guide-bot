@@ -11,8 +11,8 @@
                 http://localhost:38104
     datasource:
       url: jdbc:postgresql://localhost:38121/guide
-      username: ${DB_USERNAME}
-      password: ${DB_PASSWORD}
+      username: lgcms
+      password: 1234
       driver-class-name: org.postgresql.Driver
     jpa:
       show-sql: false
