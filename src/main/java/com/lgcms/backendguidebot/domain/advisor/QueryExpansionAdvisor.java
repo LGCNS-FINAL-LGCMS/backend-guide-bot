@@ -47,7 +47,7 @@ public class QueryExpansionAdvisor implements CallAdvisor {
                         Provide the results as a comma-separated list of keywords/phrases.
                         Extensions that deviate from the intent of the question are prohibited.
                         확장 단어는 최대 4개 입니다. 한글자 이하는 확장하지 않고 "잘모르겠습니다." 만 답변합니다.
-                        
+                        * 만약 인사말이라면 확장하지 않고 "안녕하세요!" 로만 답변합니다.
                   
                         Original query: {query}
                         Expanded query keywords/phrases:

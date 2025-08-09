@@ -3,9 +3,8 @@ package com.lgcms.backendguidebot.domain.advisor;
 
 import com.lgcms.backendguidebot.common.dto.exception.BaseException;
 import com.lgcms.backendguidebot.common.dto.exception.QnaError;
-import lombok.AllArgsConstructor;
+import com.lgcms.backendguidebot.domain.dto.ChatResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
@@ -13,9 +12,8 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.document.Document;
 
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class ReRankAdvisor implements CallAdvisor {
-//    private final ChatClient.Builder chatClientBuilder;
     private final VectorStore vectorStore;
     @Value("classpath:prompts/rag-prompt.st")
     private Resource ragPromptTemplateResource;
@@ -45,6 +42,11 @@ public class ReRankAdvisor implements CallAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
+        // dto 형태 반환을 위한 beanoutputconverter
+        BeanOutputConverter<ChatResponse> beanOutputConverter = new BeanOutputConverter<>(ChatResponse.class);
+        String format = beanOutputConverter.getFormat();
+        // Prompt변환용 메세지 리스트
+        List<Message> finalMessageList = new ArrayList<>();
 
 
         // chatClientRequest 속에 있는 확장쿼리 찾기
@@ -59,13 +61,32 @@ public class ReRankAdvisor implements CallAdvisor {
         String userQuery = chatClientRequest.prompt().getContents();
 
         // 검색 단계
+        // 1. 유사도 검색을 한다. 단, 0.3 score아래는 버린다.
+        // 2. retrievedDocuments가 null이면 바로 다음체인으로 넘어간다.
+        // 3. 최종적으로 기존시스템프롬프트 + 검색으로얻은자료들 + 반환format 을 가지고 llm에 질문을 한다.
         List<Document> retrievedDocuments = vectorStore.similaritySearch(SearchRequest.builder()
                 .query(expandedQuery)
+                .similarityThreshold(0.3)
                 .topK(10)
                 .build()
         );
         if (Objects.requireNonNull(retrievedDocuments).isEmpty()) {
-            throw new BaseException(QnaError.QNA_SERVER_ERROR);
+            finalMessageList.add(new SystemMessage(
+                    """
+                            죄송합니다. 해당 질문에 대한 정확한 정보를 가지고 있지 않습니다. 라고 대답하세요.
+                            imageUrl은 항상 null입니다.
+                            """
+                            + "\n\n" + format));
+            finalMessageList.add(new UserMessage(userQuery));
+
+            Prompt finalReRankPrompt = new Prompt(finalMessageList, chatClientRequest
+                    .prompt()
+                    .getOptions());
+            ChatClientRequest finalChatClient = ChatClientRequest.builder()
+                    .prompt(finalReRankPrompt)
+                    .build();
+
+            return callAdvisorChain.nextCall(finalChatClient);
         }
         log.info("검색결과 : {}", retrievedDocuments);
 
@@ -119,8 +140,11 @@ public class ReRankAdvisor implements CallAdvisor {
                         docInfo.append("distance: ").append(metadata.get("distance")).append("\n");
                     }
                     docInfo.append("score: ").append(doc.getScore()).append("\n");
-                    if (metadata.containsKey("url")){
+                    if (metadata.containsKey("url")) {
                         docInfo.append("url: ").append(metadata.get("url")).append("\n");
+                    }
+                    if (metadata.containsKey("image_url")) {
+                        docInfo.append("image_url: ").append(metadata.get("image_url")).append("\n");
                     }
 
                     docInfo.append("}");
@@ -129,23 +153,23 @@ public class ReRankAdvisor implements CallAdvisor {
                 .collect(Collectors.joining("\n\n"));
         log.info("string된 메타데이터 \n{}", documentsMetadata);
 
-
+        // 중복 요청 방지용 대기시간
         try {
-            Thread.sleep(500);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
 
-        List<Message> finalMessageList = new ArrayList<>();
         String ragPromptTemplate;
         try {
             ragPromptTemplate = StreamUtils.copyToString(ragPromptTemplateResource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BaseException(QnaError.QNA_PROMPT_ERROR);
         }
 
-        finalMessageList.add(new SystemMessage(ragPromptTemplate + documentsMetadata));
+        finalMessageList.add(new SystemMessage(ragPromptTemplate + documentsMetadata
+                + "\n\n" + format));
         finalMessageList.add(new UserMessage(userQuery));
 
         Prompt finalReRankPrompt = new Prompt(finalMessageList, chatClientRequest

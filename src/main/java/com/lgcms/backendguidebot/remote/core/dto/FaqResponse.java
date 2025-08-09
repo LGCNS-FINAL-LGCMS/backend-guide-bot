@@ -6,5 +6,4 @@ public record FaqResponse(
         String answer,
         String url,
         String image_url) {
-
 }
