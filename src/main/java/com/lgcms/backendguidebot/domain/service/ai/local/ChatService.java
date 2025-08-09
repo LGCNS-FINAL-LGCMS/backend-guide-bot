@@ -5,27 +5,21 @@ import com.lgcms.backendguidebot.common.dto.exception.BaseException;
 import com.lgcms.backendguidebot.common.dto.exception.QnaError;
 import com.lgcms.backendguidebot.domain.advisor.QueryExpansionAdvisor;
 import com.lgcms.backendguidebot.domain.advisor.ReRankAdvisor;
-import lombok.AllArgsConstructor;
+import com.lgcms.backendguidebot.domain.dto.ChatResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ChatClientRequest;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.UserMessage;
+
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
+import org.springframework.ai.converter.BeanOutputConverter;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.stereotype.Service;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -33,10 +27,8 @@ public class ChatService {
     private final ChatClient.Builder chatClientBuilder;
     private final QueryExpansionAdvisor queryExpansionAdvisor;
     private final ReRankAdvisor reRankAdvisor;
-
-    @Value("classpath:prompts/rag-prompt.st")
-    private Resource ragPromptTemplateResource;
-    private ChatClientRequest chatClientRequest;
+    // "answer" 필드의 값만 추출하기 위한 정규식 패턴
+    private static final Pattern ANSWER_FIELD_PATTERN = Pattern.compile("\"answer\":\\s*\"(.*?)\"", Pattern.DOTALL);
 
     public ChatService(ChatClient.Builder chatClientBuilder, QueryExpansionAdvisor queryExpansionAdvisor, ReRankAdvisor reRankAdvisor) {
         this.chatClientBuilder = chatClientBuilder;
@@ -45,8 +37,8 @@ public class ChatService {
     }
 
 
-    public String getResponse(String userQuery) {
-
+    public ChatResponse getResponse(String userQuery) {
+        BeanOutputConverter<ChatResponse> beanOutputConverter = new BeanOutputConverter<>(ChatResponse.class);
         Prompt initialPrompt = new Prompt(userQuery);
 
         ChatOptions chatOptions = ChatOptions.builder()
@@ -60,28 +52,26 @@ public class ChatService {
                 .defaultOptions(chatOptions)
                 .build();
 
-        // 삭제대상 <- advisor안쓸경우의 비교를 위함
-
-//        List<Message> finalMessageList = new ArrayList<>();
-//        String ragPromptTemplate;
-//        try {
-//            ragPromptTemplate = StreamUtils.copyToString(ragPromptTemplateResource.getInputStream(), StandardCharsets.UTF_8);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        SystemMessage systemMessage = new SystemMessage(ragPromptTemplate);
-//        UserMessage userMessage = new UserMessage(userQuery);
-//        Prompt initialPrompt = new Prompt(List.of(systemMessage, userMessage));
-
-        // 테스트용 끝
-
         // api 키 문제시 "답변생성에 문제가 생겼습니다." 를 보냅니다.
         try {
-            return chatClient.prompt(initialPrompt)
+            String rawResponse = chatClient.prompt(initialPrompt)
                     .advisors(queryExpansionAdvisor, reRankAdvisor)
                     .call()
                     .content();
+
+            Matcher matcher = ANSWER_FIELD_PATTERN.matcher(rawResponse);
+            if (matcher.find()) {
+                String originalAnswer = matcher.group(1);
+                String escapedAnswer = originalAnswer.replace("\n", "\\n").replace("\r", "");
+
+                // 수정된 answer 필드 값으로 원본 JSON 문자열을 재조립하기
+                String finalJson = rawResponse.replace(originalAnswer, escapedAnswer);
+
+                log.info("최종 JSON: {}", finalJson);
+                return beanOutputConverter.convert(finalJson);
+            } else {
+                throw new Exception();
+            }
         }catch (Exception e) {
             log.error("api키 부재 : {}",e.getMessage());
             throw new BaseException(QnaError.QNA_SERVER_ERROR);

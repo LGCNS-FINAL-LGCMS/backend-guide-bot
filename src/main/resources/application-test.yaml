@@ -29,7 +29,7 @@ spring:
 
     bedrock:
       aws:
-        region: ap-northeast-2 # 서울리전
+        region: ap-northeast-2
       titan:
         embedding:
           model: amazon.titan-embed-text-v2:0
