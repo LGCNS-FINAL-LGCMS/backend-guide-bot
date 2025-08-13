@@ -32,7 +32,7 @@
   {
     "question": "나중에 카테고리를 바꾸려면 어디에서 변경하나요?",
     "answer": "마이페이지의 회원정보수정에서 카테고리를 변경할 수 있어요. 저장 후 메인 추천이 순차 반영돼요.",
-    "url": null,
+    "url": "http://localhost:5173/home",
     "image_url": null
   },
   {
@@ -116,7 +116,7 @@
   {
     "question": "회원정보수정에서 닉네임은 어떻게 변경하나요?",
     "answer": "마이페이지 > 회원정보수정에서 닉네임을 수정한 뒤 저장해 주세요. 변경 사항이 프로필에 반영돼요.",
-    "url": null,
+    "url": "http://localhost:5173/home",
     "image_url": null
   },
   {
