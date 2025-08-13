@@ -67,7 +67,7 @@ public class ReRankAdvisor implements CallAdvisor {
         List<Document> retrievedDocuments = vectorStore.similaritySearch(SearchRequest.builder()
                 .query(expandedQuery)
                 .similarityThreshold(0.3)
-                .topK(10)
+                .topK(20)
                 .build()
         );
         if (Objects.requireNonNull(retrievedDocuments).isEmpty()) {
