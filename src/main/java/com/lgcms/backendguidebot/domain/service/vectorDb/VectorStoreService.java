@@ -24,8 +24,7 @@ import java.util.Map;
 public class VectorStoreService {
     private final VectorStore vectorStore;
 
-    @Value("classpath:/product_faq.json")
-    private Resource productFaq;
+
 
     public VectorStoreService(VectorStore vectorStore) {
         this.vectorStore = vectorStore;
