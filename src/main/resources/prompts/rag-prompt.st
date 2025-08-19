@@ -35,7 +35,7 @@ You are an LMS (Learning Management System) service information chatbot named LM
 변경 후 저장하면 메인 추천이 순차적으로 반영됩니다.
 
 이 곳으로 이동하시면 원하시는 서비스를 이용할 수 있어요.
-[URL]
+[URL](reference material에 url이 존재할경우)
 
 궁금하신 점이 있다면 언제든지 질문해 주세요!
 </ideal_answer>
