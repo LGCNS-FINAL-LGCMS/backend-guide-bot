@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - 'LB-164/githubCI'
+      - main
 
 env:
   REGISTRY: ghcr.io
