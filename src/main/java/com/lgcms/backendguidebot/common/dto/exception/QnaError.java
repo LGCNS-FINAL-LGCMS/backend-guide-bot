@@ -8,8 +8,9 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum QnaError implements ErrorCodeInterface {
     QNA_NOT_FOUND("QNAE-01", "질문이 입력되지 않았습니다.", HttpStatus.NOT_FOUND),
-    QNA_SERVER_ERROR("QNAE-02","답변생성에 문제가 생겼습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    QNA_SERVER_ERROR("QNAE-02","답변생성에 문제가 생겼습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
+    QNA_PROMPT_ERROR("QNAE-03","프롬프트를 불러오지 못했습니다.", HttpStatus.NOT_FOUND);
 
     private final String status;
     private final String message;

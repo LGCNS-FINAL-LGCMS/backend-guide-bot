@@ -30,7 +30,7 @@
 
       bedrock:
         aws:
-          region: ap-northeast-2 # 서울리전
+          region: ap-northeast-2
         titan:
           embedding:
             model: amazon.titan-embed-text-v2:0
@@ -42,6 +42,5 @@
           distance-type: COSINE_DISTANCE
   #        dimensions: 1536 # openai용
           initialize-schema: true
-          schema-validation: true
           table-name: guide_bot_embedded_q
           dimensions: 1024 # 타이탄 임베딩용

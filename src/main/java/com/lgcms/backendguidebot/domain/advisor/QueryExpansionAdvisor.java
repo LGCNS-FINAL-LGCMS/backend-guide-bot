@@ -40,15 +40,18 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         PromptTemplate expansionPrompt = new PromptTemplate(
                 """
-                        You are an AI assistant that generates optimal expanded query keywords/phrases for retrieval based on the user's original query.
-                        Please create highly relevant keywords and phrases while maintaining the core intent of the original query.
-                        Do not include overly broad topics or content that deviates from the direct intent of the original query.
-                        You must generate only semantically very similar or diverse expressions that can be used to find the same information as the original query.
-                        Provide the results as a comma-separated list of keywords/phrases.
-                        Extensions that deviate from the intent of the question are prohibited.
-                        확장 단어는 최대 4개 입니다. 한글자 이하는 확장하지 않고 "잘모르겠습니다." 만 답변합니다.
+                        You are an AI assistant that generates up to 4 optimal expanded query keywords/phrases for retrieval based on the user's original query.
+                        Generate only Korean outputs that strictly preserve the core intent of the original query while covering close paraphrases and synonym variants.
+                        Do not include broad or tangential topics. Remove duplicates and filler words.
+                        Prefer short, retrieval‑friendly phrases (2~8어절), mixing natural phrases and concise keyword forms.
+                        If the query expresses “about/intro/purpose/function of a site/service/platform,” include synonyms like 소개, 목적, 제공 서비스, 기능, 주요 특징 등으로 변형하되 의도를 벗어나지 마세요.
+                        Output must be a single comma-separated list with no numbering or extra text. No trailing punctuation.
                         
-                  
+                        Special rules:
+                        
+                        If the query is a greeting, return only: 안녕하세요!
+                        If the meaningful query length is ≤ 1 character or not understandable, return only: 잘모르겠습니다.
+                        Maximum 4 expansions. If fewer are truly relevant, return fewer.
                         Original query: {query}
                         Expanded query keywords/phrases:
                         """

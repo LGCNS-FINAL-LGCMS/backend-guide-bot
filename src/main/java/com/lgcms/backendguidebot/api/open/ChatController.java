@@ -1,10 +1,14 @@
 package com.lgcms.backendguidebot.api.open;
 
 import com.lgcms.backendguidebot.common.dto.BaseResponse;
+import com.lgcms.backendguidebot.common.dto.exception.BaseException;
+import com.lgcms.backendguidebot.common.dto.exception.QnaError;
+import com.lgcms.backendguidebot.domain.dto.ChatResponse;
+import com.lgcms.backendguidebot.domain.service.ai.local.ChatService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.lgcms.backendguidebot.domain.service.ai.local.ChatService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/guide/")
+@RequestMapping("/guide/")
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
@@ -27,9 +31,9 @@ public class ChatController {
     public ResponseEntity<BaseResponse<ChatResponse>> askQuestion(
             @RequestBody ChatRequest chatRequest
     ) {
-        String answer = chatService.getResponse(chatRequest.query);
+        ChatResponse response = chatService.getResponse(chatRequest.query);
         log.info("완료");
-        return ResponseEntity.ok(BaseResponse.ok(new ChatResponse(answer)));
+        return ResponseEntity.ok(BaseResponse.ok(response));
     }
 
     @Data
@@ -38,16 +42,4 @@ public class ChatController {
     public static class ChatRequest {
         private String query;
     }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ChatResponse {
-        private String answer;
-    }
-//    @GetMapping("/stream/ask")
-//    public Flux<ChatResponse> generateStream(@RequestParam(value = "message", defaultValue = "너는 스트림코드야") String message) {
-//        Prompt prompt = new Prompt(new UserMessage(message));
-//        return this.openAiChatModel.stream(prompt);
-//    }
 }

@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/admin/guide")
+@RequestMapping("/admin/guide")
 @RequiredArgsConstructor
 public class VectorStoreController {
     private final RemoteFaqService remoteFaqService;

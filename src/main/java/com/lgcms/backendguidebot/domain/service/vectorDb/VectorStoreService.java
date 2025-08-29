@@ -1,23 +1,16 @@
 package com.lgcms.backendguidebot.domain.service.vectorDb;
 
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lgcms.backendguidebot.remote.core.dto.FaqResponse;
 
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -31,8 +24,7 @@ import java.util.Map;
 public class VectorStoreService {
     private final VectorStore vectorStore;
 
-    @Value("classpath:/product_faq.json")
-    private Resource productFaq;
+
 
     public VectorStoreService(VectorStore vectorStore) {
         this.vectorStore = vectorStore;
