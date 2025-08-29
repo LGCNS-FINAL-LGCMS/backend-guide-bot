@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/guide/")
+@RequestMapping("/guide/")
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
