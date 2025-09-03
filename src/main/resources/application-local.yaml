@@ -2,6 +2,8 @@
     port: 38105
 
   spring:
+    application:
+      name: backend-guide
     cloud:
       openfeign:
         client:
@@ -44,3 +46,11 @@
           initialize-schema: true
           table-name: guide_bot_embedded_q
           dimensions: 1024 # 타이탄 임베딩용
+ management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  metrics:
+    tags:
+      application: ${spring.application.name}

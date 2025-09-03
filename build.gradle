@@ -9,7 +9,7 @@ ext {
 }
 
 group = 'com.lgcms'
-version = '0.5'
+version = '0.6'
 
 java {
     toolchain {
@@ -59,6 +59,8 @@ dependencies {
     // 임베딩모델
     implementation 'org.springframework.ai:spring-ai-starter-model-bedrock'
 
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
 
 dependencyManagement {
