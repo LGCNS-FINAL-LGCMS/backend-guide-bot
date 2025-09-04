@@ -1,8 +1,6 @@
 package com.lgcms.backendguidebot.api.open;
 
 import com.lgcms.backendguidebot.common.dto.BaseResponse;
-import com.lgcms.backendguidebot.common.dto.exception.BaseException;
-import com.lgcms.backendguidebot.common.dto.exception.QnaError;
 import com.lgcms.backendguidebot.domain.dto.ChatResponse;
 import com.lgcms.backendguidebot.domain.service.ai.local.ChatService;
 import lombok.AllArgsConstructor;
