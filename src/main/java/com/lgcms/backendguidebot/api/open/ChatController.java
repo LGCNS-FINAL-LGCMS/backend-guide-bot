@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-@RequestMapping("/guide/")
+@RequestMapping("/guide")
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
 
 
-    @PostMapping("/ask")
+    @PostMapping("")
     public ResponseEntity<BaseResponse<ChatResponse>> askQuestion(
             @RequestBody ChatRequest chatRequest
     ) {
