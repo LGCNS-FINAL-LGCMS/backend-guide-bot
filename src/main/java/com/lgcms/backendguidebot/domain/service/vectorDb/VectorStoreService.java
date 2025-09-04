@@ -8,6 +8,7 @@ import org.springframework.ai.document.Document;
 
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,36 +24,19 @@ import java.util.stream.Collectors;
 @Service
 public class VectorStoreService {
     private final VectorStore vectorStore;
+    private final JdbcTemplate jdbcTemplate;
 
 
-
-    public VectorStoreService(VectorStore vectorStore) {
+    public VectorStoreService(VectorStore vectorStore, JdbcTemplate jdbcTemplate) {
         this.vectorStore = vectorStore;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    // 데이터가 있는지 여부를 확인하는 함수
-    public void checkDatabase(){
-        SearchRequest request = SearchRequest.builder()
-                .query("아")
-                .similarityThreshold(0)
-                .build();
-        List<Document> result = vectorStore
-                .similaritySearch(request);
-
-        if(result.isEmpty()){
-            log.info("삭제할데이터가 없습니다.");
-            return;
-        }
-        List<String> resultIds = result.stream()
-                .map(Document::getId)
-                .toList();
-        vectorStore.delete(resultIds);
-        log.info("vectordb가 채워져있어 일괄삭제 후 데이터를 가져옵니다.");
-        return;
-    }
 
     // 실제 사용하는 openfeign으로 가져온 list<faqresponse>를 임베딩해 저장하는 함수
     public void ingestDataFromList(List<FaqResponse> FaqList) {
+        jdbcTemplate.execute("TRUNCATE TABLE guide_bot_embedded_q");
+        log.info("삭제");
         long beforetime = System.currentTimeMillis();
 
         List<Document> documents = new ArrayList<>();

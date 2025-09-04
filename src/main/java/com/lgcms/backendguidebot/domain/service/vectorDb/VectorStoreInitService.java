@@ -22,7 +22,7 @@ public class VectorStoreInitService {
     public void init() throws InterruptedException {
         Thread.sleep(Duration.ofMinutes(3));
         // vectordb가 채워져있으면 삭제 후 다시 채웁니다.
-        vectorStoreService.checkDatabase();
+
         try{
             log.info("core서버에서 faq데이터를 가져옵니다...");
             List<FaqResponse> originalData = remoteFaqService.getFaq().data();
