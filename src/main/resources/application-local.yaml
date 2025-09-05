@@ -63,7 +63,7 @@
    endpoints:
      web:
        exposure:
-         include: "*"
+         include: prometheus,health,info
    metrics:
      tags:
        application: ${spring.application.name}
