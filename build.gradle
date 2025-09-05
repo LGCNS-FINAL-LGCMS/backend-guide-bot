@@ -9,7 +9,7 @@ ext {
 }
 
 group = 'com.lgcms'
-version = '0.5'
+version = '0.6'
 
 java {
     toolchain {
