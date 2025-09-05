@@ -24,6 +24,19 @@
       properties:
         hibernate:
           format_sql: true
+    data:
+      redis:
+        host: localhost
+        port: 38122
+        database-lock: 7
+        config:
+          connectionPoolSize: 10
+          connectionMinimumIdleSize: 5
+          subscriptionConnectionPoolSize: 5
+          subscriptionConnectionMinimumIdleSize: 1
+          idleConnectionTimeout: 10000
+          connectTimeout: 10000
+          timeout: 3000
 
     ai:
       model:
@@ -46,11 +59,11 @@
           initialize-schema: true
           table-name: guide_bot_embedded_q
           dimensions: 1024 # 타이탄 임베딩용
- management:
-  endpoints:
-    web:
-      exposure:
-        include: prometheus,health,info
-  metrics:
-    tags:
-      application: ${spring.application.name}
+  management:
+   endpoints:
+     web:
+       exposure:
+         include: prometheus,health,info
+   metrics:
+     tags:
+       application: ${spring.application.name}

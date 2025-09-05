@@ -59,9 +59,12 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         log.info("원본쿼리 : {}", userQuery);
         Prompt queryInPrompt = expansionPrompt.create(Map.of("query", userQuery));
+
+
         String expandedQuery = expansionClient.prompt(queryInPrompt)
                 .call()
                 .content();
+
         log.info("확장쿼리 : {}", expandedQuery);
 
         // 확장쿼리를 다시 ChatClientRequest안에다가 넣는다.
