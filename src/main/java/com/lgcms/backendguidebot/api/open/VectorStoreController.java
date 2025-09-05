@@ -4,6 +4,7 @@ import com.lgcms.backendguidebot.common.dto.BaseResponse;
 import com.lgcms.backendguidebot.remote.core.dto.FaqResponse;
 import com.lgcms.backendguidebot.domain.service.vectorDb.VectorStoreService;
 import com.lgcms.backendguidebot.remote.core.RemoteFaqService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,19 +12,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/admin/guide")
+@RequestMapping("/internal")
 @RequiredArgsConstructor
 public class VectorStoreController {
     private final RemoteFaqService remoteFaqService;
     private final VectorStoreService vectorStoreService;
 
-    // 코어에서faq데이터를 가져오고 그것을 임베딩해 저장한다.
-    @GetMapping("/ingest")
-    public ResponseEntity<BaseResponse<String>> ingest() {
+    // 코어에서faq데이터를 가져오고 그것을 임베딩해 저장한다. (수동)
+    @GetMapping("/guide")
+    public ResponseEntity<BaseResponse<String>> ingest(){
         List<FaqResponse> originalData = remoteFaqService.getFaq().data();
 
         vectorStoreService.ingestDataFromList(originalData);
