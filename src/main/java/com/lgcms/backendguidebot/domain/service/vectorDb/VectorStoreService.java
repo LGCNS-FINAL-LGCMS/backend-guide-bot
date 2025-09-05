@@ -32,11 +32,23 @@ public class VectorStoreService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public boolean isEmptyVectorStore(){
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query("a")
+                .similarityThresholdAll()
+                .build();
+        List<Document> resultList = vectorStore.similaritySearch(searchRequest);
+
+        return resultList.isEmpty();
+    }
+
+    public void deleteAllVectorStore(){
+        jdbcTemplate.execute("TRUNCATE TABLE guide_bot_embedded_q");
+        log.info("삭제");
+    }
 
     // 실제 사용하는 openfeign으로 가져온 list<faqresponse>를 임베딩해 저장하는 함수
     public void ingestDataFromList(List<FaqResponse> FaqList) {
-        jdbcTemplate.execute("TRUNCATE TABLE guide_bot_embedded_q");
-        log.info("삭제");
         long beforetime = System.currentTimeMillis();
 
         List<Document> documents = new ArrayList<>();
@@ -60,6 +72,6 @@ public class VectorStoreService {
         vectorStore.add(documents);
 
         long afteretime = System.currentTimeMillis();
-        log.info(String.valueOf((afteretime - beforetime) / 1000));
+        log.info("임베딩 시간 : {}",String.valueOf((afteretime - beforetime) / 1000));
     }
 }
