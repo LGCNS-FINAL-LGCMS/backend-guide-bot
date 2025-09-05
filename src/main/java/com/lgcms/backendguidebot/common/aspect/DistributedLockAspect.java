@@ -4,6 +4,7 @@ import com.lgcms.backendguidebot.common.annotation.DistributedLock;
 import com.lgcms.backendguidebot.common.dto.exception.BaseException;
 import com.lgcms.backendguidebot.common.dto.exception.LockError;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class DistributedLockAspect {
     private final RedissonClient redissonClient;
 
@@ -34,14 +36,17 @@ public class DistributedLockAspect {
         try {
             isLocked = lock.tryLock(waitTime, leaseTime, TimeUnit.SECONDS);
             if (!isLocked) {
-                throw new BaseException(LockError.LOCK_ALREADY_HELD);
+                log.error("락상태라 init메소드가 동작하지 못했습니다.");
+                return null;
             }
+
             return joinPoint.proceed();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new BaseException(LockError.LOCK_INTERRUPTED);
         } finally {
             if (lock.isHeldByCurrentThread()) {
+                log.info("lock이 해제되다.");
                 lock.unlock();
             }
         }
