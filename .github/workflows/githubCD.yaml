@@ -1,0 +1,98 @@
+name: Build & Delivery
+
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  REGISTRY: ghcr.io
+  ORGANIZATION: lgcns-final-lgcms
+  REPOSITORY: ${{ github.repository }}
+  REGISTRY_USERNAME: ${{ github.actor }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      pgvector:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: lgcms
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+      valkey:
+        image: valkey/valkey:alpine3.22
+        ports:
+          - 6379:6379
+      kafka:
+        image: bitnami/kafka:4.0.0
+        env:
+          KAFKA_CFG_NODE_ID: 0
+          KAFKA_CFG_PROCESS_ROLES: controller,broker
+          KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+          KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+        ports:
+          - 9092:9092
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: 21
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        shell: bash
+
+      - name: Create application-dev.yaml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ vars.APPLICATION_DEV }}" > src/main/resources/application-dev.yaml
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build with Gradle
+        id: buildWithGradle
+        run: ./gradlew clean build
+        shell: bash
+
+      - name: Extract App Name & Version
+        run: |
+          echo "APP_NAME=$(./gradlew -q getAppName | perl -pe 's/([A-Z])/-\L$1/g')" >> ${GITHUB_ENV};
+          echo "APP_VERSION=$(./gradlew -q getAppVersion)" >> ${GITHUB_ENV};
+
+      - name: Set Docker Image version
+        run: |
+          echo "DOCKER_IMAGE=${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ env.APP_NAME }}:${{ env.APP_VERSION }}" >> ${GITHUB_ENV}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ secrets.TOKEN_GITHUB }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push Docker Image (multi-platform)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}

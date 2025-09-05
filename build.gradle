@@ -76,3 +76,19 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+jar {
+    enabled = false
+}
+
+tasks.register("getAppName") {
+    doLast {
+        println("${rootProject.name}")
+    }
+}
+
+tasks.register("getAppVersion") {
+    doLast {
+        println("${rootProject.version}")
+    }
+}
