@@ -9,7 +9,7 @@ ext {
 }
 
 group = 'com.lgcms'
-version = '0.7'
+version = '0.8'
 
 java {
     toolchain {
@@ -60,9 +60,17 @@ dependencies {
     implementation 'org.springframework.ai:spring-ai-starter-model-bedrock'
 
     // 분산락을 위해
+    implementation 'org.redisson:redisson-spring-boot-starter:3.51.0'
+
+    // 메트릭
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.redisson:redisson-spring-boot-starter:3.51.0'
+
+    // 트레이싱
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp' // otel exporter
+    implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.1.2' // JDBC 트레이싱
+    implementation 'io.github.openfeign:feign-micrometer' // feign 트레이싱
 
 }
 
