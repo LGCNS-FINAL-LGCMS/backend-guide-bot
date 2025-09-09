@@ -11,10 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -31,6 +30,13 @@ public class ChatController {
     ) {
         ChatResponse response = chatService.getResponse(chatRequest.query);
         log.info("완료");
+        return ResponseEntity.ok(BaseResponse.ok(response));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<BaseResponse<List<String>>> getRecommendWords(){
+        List<String> response = chatService.getRecommendWord();
+        log.info("추천키워드 제공완료");
         return ResponseEntity.ok(BaseResponse.ok(response));
     }
 

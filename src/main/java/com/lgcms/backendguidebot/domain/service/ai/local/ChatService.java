@@ -16,8 +16,12 @@ import org.springframework.ai.chat.prompt.Prompt;
 
 import org.springframework.ai.converter.BeanOutputConverter;
 
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,13 +31,15 @@ public class ChatService {
     private final ChatClient.Builder chatClientBuilder;
     private final QueryExpansionAdvisor queryExpansionAdvisor;
     private final ReRankAdvisor reRankAdvisor;
+    private final VectorStore vectorStore;
     // "answer" 필드의 값만 추출하기 위한 정규식 패턴
     private static final Pattern ANSWER_FIELD_PATTERN = Pattern.compile("\"answer\":\\s*\"(.*?)\"", Pattern.DOTALL);
 
-    public ChatService(ChatClient.Builder chatClientBuilder, QueryExpansionAdvisor queryExpansionAdvisor, ReRankAdvisor reRankAdvisor) {
+    public ChatService(ChatClient.Builder chatClientBuilder, QueryExpansionAdvisor queryExpansionAdvisor, ReRankAdvisor reRankAdvisor, VectorStore vectorStore) {
         this.chatClientBuilder = chatClientBuilder;
         this.queryExpansionAdvisor = queryExpansionAdvisor;
         this.reRankAdvisor = reRankAdvisor;
+        this.vectorStore = vectorStore;
     }
 
 
@@ -76,5 +82,18 @@ public class ChatService {
             log.error("api키 부재 : {}",e.getMessage());
             throw new BaseException(QnaError.QNA_SERVER_ERROR);
         }
+    }
+
+    public List<String> getRecommendWord(){
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query("안녕")
+                .topK(3)
+                .build();
+        List<String> results = vectorStore.similaritySearch(searchRequest)
+                .stream()
+                .map(Document::getText)
+                .toList();
+
+        return results;
     }
 }
