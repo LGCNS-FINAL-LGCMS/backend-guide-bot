@@ -86,7 +86,7 @@ public class ChatService {
 
     public List<String> getRecommendWord(){
         SearchRequest searchRequest = SearchRequest.builder()
-                .query("안녕")
+                .query("LGCMS, 로그인")
                 .topK(3)
                 .build();
         List<String> results = vectorStore.similaritySearch(searchRequest)
