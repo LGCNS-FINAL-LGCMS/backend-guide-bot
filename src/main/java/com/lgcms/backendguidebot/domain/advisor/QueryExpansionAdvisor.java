@@ -69,12 +69,14 @@ public class QueryExpansionAdvisor implements CallAdvisor {
 
         // 확장쿼리를 다시 ChatClientRequest안에다가 넣는다.
         List<Message> messages = new ArrayList<>(chatClientRequest.prompt().getInstructions());
-        messages.add(0, new SystemMessage("expanded query : " + expandedQuery));
+//        messages.add(0, new SystemMessage("expanded query : " + expandedQuery));
 
         Prompt newPrompt = new Prompt(messages, chatClientRequest.prompt().getOptions());
         ChatClientRequest newChatClientRequest = ChatClientRequest.builder()
                 .prompt(newPrompt)
+                .context(Map.of("expandedQuery", expandedQuery))
                 .build();
+
 
         // 다 하고 난 뒤 어드 바이저 혹은 마지막 llm 호출을 실시한다.
         return callAdvisorChain.nextCall(newChatClientRequest);
