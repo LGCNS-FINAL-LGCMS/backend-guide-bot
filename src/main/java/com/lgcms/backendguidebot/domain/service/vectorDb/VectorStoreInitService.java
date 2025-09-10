@@ -28,7 +28,7 @@ public class VectorStoreInitService {
     @DistributedLock(lockKey = LOCK_KEY)
     public void init() throws InterruptedException {
         // core서버 켜지기 까지 대기하기
-        Thread.sleep(Duration.ofMinutes(3));
+        Thread.sleep(Duration.ofMinutes(2));
         try{
             // lock상태 점유하기 위함.
             Thread.sleep(Duration.ofSeconds(10));
