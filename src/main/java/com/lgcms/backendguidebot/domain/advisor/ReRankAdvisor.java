@@ -51,11 +51,7 @@ public class ReRankAdvisor implements CallAdvisor {
 
         // chatClientRequest 속에 있는 확장쿼리 찾기
         String expandedQuery = null;
-        List<Message> messageList = new ArrayList<>(chatClientRequest.prompt().getInstructions());
-        for (Message message : messageList) {
-            expandedQuery = message.getText().substring(17).trim();
-            break;
-        }
+        expandedQuery = (String)chatClientRequest.context().get("expandedQuery");
         log.info("리랭크 어드바이저 : {}", expandedQuery);
 
         String userQuery = chatClientRequest.prompt().getContents();
@@ -117,7 +113,7 @@ public class ReRankAdvisor implements CallAdvisor {
                 (Document doc) -> (String) doc.getMetadata().getOrDefault("createdAt", "0000-01-01T00:00:00")
         ).reversed();
         filteredDocuments.sort(scoreComparator.thenComparing(createdAtComparator));
-        log.info("필터된 도큐먼트 : {}", filteredDocuments);
+//        log.info("필터된 도큐먼트 : {}", filteredDocuments);
         // 최대 7개의 도큐먼트로 수정
         if(filteredDocuments.size() >7){
             filteredDocuments = filteredDocuments.subList(0, 7);
@@ -151,7 +147,7 @@ public class ReRankAdvisor implements CallAdvisor {
                     return docInfo.toString();
                 })
                 .collect(Collectors.joining("\n\n"));
-        log.info("string된 메타데이터 \n{}", documentsMetadata);
+//        log.info("string된 메타데이터 \n{}", documentsMetadata);
 
         // 중복 요청 방지용 대기시간
         try {
