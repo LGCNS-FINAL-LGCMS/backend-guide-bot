@@ -164,13 +164,15 @@ public class ReRankAdvisor implements CallAdvisor {
             throw new BaseException(QnaError.QNA_PROMPT_ERROR);
         }
 
-        finalMessageList.add(new SystemMessage(ragPromptTemplate + documentsMetadata
+        String replacedList = ragPromptTemplate.replace("{context}", documentsMetadata);
+        finalMessageList.add(new SystemMessage(replacedList
                 + "\n\n" + format));
         finalMessageList.add(new UserMessage(userQuery));
 
         Prompt finalReRankPrompt = new Prompt(finalMessageList, chatClientRequest
                 .prompt()
                 .getOptions());
+
         ChatClientRequest finalChatClient = ChatClientRequest.builder()
                 .prompt(finalReRankPrompt)
                 .build();
