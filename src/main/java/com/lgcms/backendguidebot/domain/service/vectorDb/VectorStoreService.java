@@ -61,8 +61,9 @@ public class VectorStoreService {
                     if (faq.url() != null) {
                         metadata.put("url", faq.url());
                     }
-                    if (faq.image_url() != null) {
-                        metadata.put("image_url", faq.image_url());
+                    if (faq.imageUrl() != null) {
+
+                        metadata.put("image_url", faq.imageUrl());
                     }
 
                     Document document = new Document(faq.question(), metadata);

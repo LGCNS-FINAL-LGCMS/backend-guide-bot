@@ -5,5 +5,5 @@ public record FaqResponse(
         String question,
         String answer,
         String url,
-        String image_url) {
+        String imageUrl) {
 }
